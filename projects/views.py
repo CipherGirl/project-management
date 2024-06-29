@@ -12,8 +12,7 @@ from django.db.models import Q
 from django.core.exceptions import PermissionDenied
 
 
-# Project views ...
-
+# View to list all projects the user is involved in
 class ProjectList(LoginRequiredMixin, ListView):
     model = Projects
     context_object_name = 'projects'
@@ -21,18 +20,21 @@ class ProjectList(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         user = self.request.user
+        # Fetch projects where the user is either the creator or a member
         return Projects.objects.filter(Q(created_by=user) | Q(members=user)).distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         projects = context['projects']
         
+        # Count incomplete projects
         count_incomplete = projects.filter(complete=False).count()
         
         context['count'] = count_incomplete
         return context
 
 
+# View to show details of a specific project
 class ProjectDetail(LoginRequiredMixin, DetailView):
     model = Projects
     context_object_name = 'project'
@@ -40,6 +42,7 @@ class ProjectDetail(LoginRequiredMixin, DetailView):
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
+        # Check if the user is a member of the project
         if request.user not in project.members.all():
             return redirect('project_list')
         return super().dispatch(request, *args, **kwargs)
@@ -52,6 +55,7 @@ class ProjectDetail(LoginRequiredMixin, DetailView):
         return context
 
 
+# View to create a new project
 class ProjectCreate(LoginRequiredMixin, CreateView):
     model = Projects
     fields = ['title', 'description', 'complete']
@@ -60,11 +64,15 @@ class ProjectCreate(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         project = form.save(commit=False)
+        # Set the creator of the project
         project.created_by = self.request.user
         project.save()
+        # Add the creator as a member of the project
         project.members.add(self.request.user)
-        return super(ProjectCreate, self).form_valid(form)
+        return super().form_valid(form)
 
+
+# View to update an existing project
 class ProjectUpdate(LoginRequiredMixin, UpdateView):
     model = Projects
     fields = ['title', 'description', 'complete']
@@ -73,6 +81,7 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
+        # Check if the user is a member of the project
         if request.user not in project.members.all():
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
@@ -85,6 +94,7 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         project = self.get_object()
+        # Pass members and all users excluding the creator to the context
         context['members'] = project.members.all()
         context['all_users'] = User.objects.exclude(id=project.created_by.id)
         return context
@@ -92,6 +102,7 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         project = self.get_object()
         members = request.POST.getlist('members')
+        # Ensure the current user cannot remove themselves
         members.append(str(request.user.id))
         if not project.created_by == request.user:
             raise PermissionDenied
@@ -107,6 +118,8 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
 
         return super().post(request, *args, **kwargs)
 
+
+# View to delete a project
 class ProjectDelete(LoginRequiredMixin, DeleteView):
     model = Projects
     context_object_name = 'project'
@@ -115,10 +128,13 @@ class ProjectDelete(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
+        # Only the creator or members can delete the project
         if request.user != project.created_by and request.user not in project.members.all():
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
+
+# View to handle user login
 class UserLoginView(LoginView):
     template_name = 'projects/login.html'
     fields = '__all__'
@@ -127,6 +143,8 @@ class UserLoginView(LoginView):
     def get_success_url(self):
         return reverse_lazy('project_list') if self.request.user.is_authenticated else reverse_lazy('login')
 
+
+# View to handle user registration
 class RegisterPage(FormView):
     template_name = 'projects/register.html'
     form_class = UserCreationForm
@@ -137,31 +155,33 @@ class RegisterPage(FormView):
         user = form.save()
         if user is not None:
             login(self.request, user)
-        return super(RegisterPage, self).form_valid(form)
+        return super().form_valid(form)
 
     def get(self, *args, **kwargs):
         if self.request.user.is_authenticated: 
             return redirect('project_list')
-        return super(RegisterPage, self).get(*args, **kwargs)
+        return super().get(*args, **kwargs)
 
+
+# View to list all tasks in a project
 class TaskList(LoginRequiredMixin, ListView):
     model = Task
     context_object_name = 'tasks'
     template_name = 'tasks/task_list.html'
-    
-    orphaned_tasks = Task.objects.filter(project__isnull=True)
-    orphaned_tasks.delete()
 
     def get_queryset(self):
         project = get_object_or_404(Projects, id=self.kwargs['pk'])
         return Task.objects.filter(project=project)
 
+
+# View to show details of a specific task
 class TaskDetail(LoginRequiredMixin, DetailView):
     model = Task
     context_object_name = 'task'
     template_name = 'tasks/task_detail.html'
-    
 
+
+# View to create a new task
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
     fields = ['title', 'description', 'status']
@@ -185,6 +205,8 @@ class TaskCreate(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.kwargs['pk']})
 
+
+# View to update an existing task
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
     fields = ['title', 'description', 'status']
@@ -217,6 +239,8 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.object.project.id})
 
+
+# View to delete a task
 class TaskDelete(LoginRequiredMixin, DeleteView):
     model = Task
     context_object_name = 'task'
