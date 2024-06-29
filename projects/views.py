@@ -41,18 +41,46 @@ class ProjectCreate(LoginRequiredMixin, CreateView):
     template_name = 'projects/project_form.html'
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        project = form.save(commit=False)
+        project.user = self.request.user  # Set the project owner
+        project.save()
+        project.members.add(self.request.user)  # Add the owner as a member
         return super(ProjectCreate, self).form_valid(form)
 
 class ProjectUpdate(LoginRequiredMixin, UpdateView):
     model = Projects
-    fields =  ['title', 'description', 'complete']
-    success_url = reverse_lazy('project_list')
+    fields = ['title', 'description', 'complete']
     template_name = 'projects/project_form.html'
+    success_url = reverse_lazy('project_list')
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
+        project = form.save(commit=False)
+        project.save()
+
+        # Add the current user to project members if not already a member
+        if self.request.user not in project.members.all():
+            project.members.add(self.request.user)
+        
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = self.get_object()
+        context['members'] = project.members.all()
+        context['all_users'] = User.objects.exclude(id=project.user.id)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        project = self.get_object()
+        members = request.POST.getlist('members')  # Get list of selected member IDs from form
+
+        # Clear existing members and add selected members
+        project.members.clear()
+        for member_id in members:
+            user = get_object_or_404(User, id=member_id)
+            project.members.add(user)
+
+        return super().post(request, *args, **kwargs)
 
 class ProjectDelete(LoginRequiredMixin, DeleteView):
     model = Projects
