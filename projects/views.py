@@ -1,5 +1,5 @@
 from django.shortcuts import render, HttpResponse
-from django.views.generic import ListView, DetailView, CreateView, UpdateView  
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from .models import Projects
 
@@ -37,3 +37,9 @@ class ProjectUpdate(UpdateView):
     def form_valid(self, form):
         form.instance.user = self.request.user
         return super().form_valid(form)
+    
+class ProjectDelete(DeleteView):
+    model = Projects
+    context_object_name = 'project'
+    success_url = reverse_lazy('project_list')
+    template_name = 'projects/project_confirm_delete.html'
