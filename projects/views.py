@@ -190,11 +190,13 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
     fields = ['title', 'description', 'status']
     template_name = 'tasks/task_form.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        task = self.get_object()
-        if request.user != task.project.created_by and request.user not in task.project.members.all():
-            raise PermissionDenied 
-        return super().dispatch(request, *args, **kwargs)
+    def get_object(self, queryset=None):
+        project = get_object_or_404(Projects, id=self.kwargs['pk'])
+        task = get_object_or_404(Task, id=self.kwargs['task_pk'], project=project)
+        
+        if self.request.user not in project.members.all():
+            raise PermissionDenied
+        return task
 
     def form_valid(self, form):
         assigned_to_id = self.request.POST.get('assigned_to')
@@ -215,17 +217,18 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.object.project.id})
 
-
 class TaskDelete(LoginRequiredMixin, DeleteView):
     model = Task
     context_object_name = 'task'
     template_name = 'tasks/task_confirm_delete.html'
 
-    def dispatch(self, request, *args, **kwargs):
-        task = self.get_object()
-        if request.user != task.project.created_by and request.user not in task.project.members.all():
+    def get_object(self, queryset=None):
+        project = get_object_or_404(Projects, id=self.kwargs['pk'])
+        task = get_object_or_404(Task, id=self.kwargs['task_pk'], project=project)
+        
+        if self.request.user not in project.members.all():
             raise PermissionDenied
-        return super().dispatch(request, *args, **kwargs)
+        return task
 
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.object.project.id})
