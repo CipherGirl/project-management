@@ -1,5 +1,6 @@
 from django.shortcuts import render, HttpResponse
 from django.views.generic import ListView 
+from django.views.generic import DetailView 
 from .models import Projects
 
 # Create your views here.
@@ -8,6 +9,11 @@ from .models import Projects
 
 class ProjectListView(ListView):
     model = Projects
-    # template_name = 'projects/project.html'
-    # context_object_name = 'projects'
+    context_object_name = 'projects'
+    template_name = 'projects/project_list.html'
     # ordering = ['complete']
+
+class ProjectDetail(DetailView):
+    model = Projects
+    context_object_name = 'project'
+    template_name = 'projects/project_detail.html'

@@ -1,0 +1,18 @@
+<h1>My Project List</h1>
+
+{% if not projects %}
+  <h3>No projects</h3>
+  <a href="">Create a new project</a>
+{% else %}
+  <table>
+    <tr>
+      <th>Items</th>
+    </tr>
+    {% for project in projects %}
+    <tr>
+      <td>{{ project.title }}</td>
+      <td><a href="{% url 'project_detail' project.id %}">View</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endif %}
