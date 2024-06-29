@@ -1,8 +1,20 @@
+{% extends 'projects/main.html' %} {% block content %}
 
-{% extends 'projects/main.html' %}
+<h1>{{ project.title }}</h1>
+<p>Description: {{ project.description }}</p>
+<p>Complete: {% if project.complete %} Yes {% else %} No {% endif %}</p>
 
-{% block content %}
-<h1>Project: {{project}}</h1>
+<h2>Tasks:</h2>
+<ul>
+  {% for task in tasks %}
+  <li>
+    {{ task.title }} - {{ task.status }} (Assigned to: {{ task.user.username }})
+  </li>
+  {% empty %}
+  <li>No tasks for this project.</li>
+  {% endfor %}
+</ul>
 
-<p>{{project.description}}</p>
+<a href="{% url 'project_update' pk=project.pk %}">Update Project</a>
+<a href="{% url 'project_delete' pk=project.pk %}">Delete Project</a>
 {% endblock content %}
