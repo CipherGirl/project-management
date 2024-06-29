@@ -11,9 +11,9 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('register/', RegisterPage.as_view(), name='register'),
     path('project/<int:pk>/', ProjectDetail.as_view(), name='project_detail'),
-    path('project-create/', ProjectCreate.as_view(), name='project_create'),
-    path('project-update/<int:pk>', ProjectUpdate.as_view(), name='project_update'),
-    path('project-delete/<int:pk>', ProjectDelete.as_view(), name='project_delete'),
+    path('project/create/', ProjectCreate.as_view(), name='project_create'),
+    path('project/update/<int:pk>', ProjectUpdate.as_view(), name='project_update'),
+    path('project/delete/<int:pk>', ProjectDelete.as_view(), name='project_delete'),
 
     # Task URLs
     path('project/<int:pk>/tasks/', TaskList.as_view(), name='task_list'),
