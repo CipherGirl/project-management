@@ -32,6 +32,8 @@ class ProjectDetail(LoginRequiredMixin, DetailView):
         project = self.get_object()
         tasks = Task.objects.filter(project=project)
         context['tasks'] = tasks
+        for task in tasks:
+            print(task.assigned_to)
         return context
 
 class ProjectCreate(LoginRequiredMixin, CreateView):
@@ -117,6 +119,9 @@ class TaskList(LoginRequiredMixin, ListView):
     model = Task
     context_object_name = 'tasks'
     template_name = 'tasks/task_list.html'
+    
+    orphaned_tasks = Task.objects.filter(project__isnull=True)
+    orphaned_tasks.delete()
 
     def get_queryset(self):
         project = get_object_or_404(Projects, id=self.kwargs['pk'])
@@ -126,39 +131,55 @@ class TaskDetail(LoginRequiredMixin, DetailView):
     model = Task
     context_object_name = 'task'
     template_name = 'tasks/task_detail.html'
+    
 
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
-    fields = ['title', 'description', 'status']  # Include 'assigned_to' if not using the default User model
-
+    fields = ['title', 'description', 'status']
     template_name = 'tasks/task_form.html'
 
     def form_valid(self, form):
-        print(self.request.POST) 
         project = get_object_or_404(Projects, id=self.kwargs['pk'])
         form.instance.project = project
-        form.instance.user = self.request.user  # Assign current user
-        assigned_to_id = self.request.POST.get('assigned_to')  # Get selected assignee ID from POST data
+        assigned_to_id = self.request.POST.get('assigned_to')
         if assigned_to_id:
             form.instance.assigned_to = User.objects.get(id=assigned_to_id)
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['project'] = get_object_or_404(Projects, id=self.kwargs['pk'])
-        context['users'] = User.objects.all()  # Provide all users for the dropdown
+        project = get_object_or_404(Projects, id=self.kwargs['pk'])
+        context['project'] = project
+        context['users'] = project.members.all()  # Provide project members for the dropdown
         return context
 
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.kwargs['pk']})
-    
+
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
     fields = ['title', 'description', 'status']
     template_name = 'tasks/task_form.html'
 
+    def form_valid(self, form):
+        assigned_to_id = self.request.POST.get('assigned_to')  # Get selected assignee ID from POST data
+        if assigned_to_id:
+            form.instance.assigned_to = User.objects.get(id=assigned_to_id)
+        else:
+            form.instance.assigned_to = None  # Clear the assignee if none is selected
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task = self.get_object()
+        project = task.project  # Use the task's existing project
+        context['project'] = project
+        context['users'] = project.members.all()  # Provide project members for the dropdown
+        return context
+
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.object.project.id})
+
 
 class TaskDelete(LoginRequiredMixin, DeleteView):
     model = Task

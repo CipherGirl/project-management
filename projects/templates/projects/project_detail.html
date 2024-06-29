@@ -1,6 +1,4 @@
-{% extends 'projects/main.html' %}
-
-{% block content %}
+{% extends 'projects/main.html' %} {% block content %}
 
 <h1>{{ project.title }}</h1>
 <p>Description: {{ project.description }}</p>
@@ -10,9 +8,9 @@
 <h2>Members:</h2>
 <ul>
   {% for member in project.members.all %}
-    <li>{{ member.username }}</li>
+  <li>{{ member.username }}</li>
   {% empty %}
-    <li>No members for this project.</li>
+  <li>No members for this project.</li>
   {% endfor %}
 </ul>
 
@@ -20,7 +18,7 @@
 <ul>
   {% for task in tasks %}
   <li>
-    {{ task.title }} - {{ task.status }} (Assigned to: {{ task.user.username }})
+    {{ task.title }} - {{ task.status }} Assigned to: {{ task.assigned_to }}
     <a href="{% url 'task_update' project.pk task.pk %}">Update</a>
     <a href="{% url 'task_delete' project.pk task.pk %}">Delete</a>
   </li>
