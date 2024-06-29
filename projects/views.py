@@ -8,6 +8,9 @@ from django.contrib.auth import login
 from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from .models import Projects, Task
+from django.db.models import Q
+from django.core.exceptions import PermissionDenied
+
 
 # Project views ...
 
@@ -16,25 +19,38 @@ class ProjectList(LoginRequiredMixin, ListView):
     context_object_name = 'projects'
     template_name = 'projects/project_list.html'
 
+    def get_queryset(self):
+        user = self.request.user
+        return Projects.objects.filter(Q(created_by=user) | Q(members=user)).distinct()
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['projects'] = context['projects'].filter(user=self.request.user)
-        context['count'] = context['projects'].filter(complete=False).count()
+        projects = context['projects']
+        
+        count_incomplete = projects.filter(complete=False).count()
+        
+        context['count'] = count_incomplete
         return context
+
 
 class ProjectDetail(LoginRequiredMixin, DetailView):
     model = Projects
     context_object_name = 'project'
     template_name = 'projects/project_detail.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        if request.user not in project.members.all():
+            return redirect('project_list')
+        return super().dispatch(request, *args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         project = self.get_object()
         tasks = Task.objects.filter(project=project)
         context['tasks'] = tasks
-        for task in tasks:
-            print(task.assigned_to)
         return context
+
 
 class ProjectCreate(LoginRequiredMixin, CreateView):
     model = Projects
@@ -44,9 +60,9 @@ class ProjectCreate(LoginRequiredMixin, CreateView):
 
     def form_valid(self, form):
         project = form.save(commit=False)
-        project.user = self.request.user  # Set the project owner
+        project.created_by = self.request.user
         project.save()
-        project.members.add(self.request.user)  # Add the owner as a member
+        project.members.add(self.request.user)
         return super(ProjectCreate, self).form_valid(form)
 
 class ProjectUpdate(LoginRequiredMixin, UpdateView):
@@ -55,28 +71,35 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     template_name = 'projects/project_form.html'
     success_url = reverse_lazy('project_list')
 
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        if request.user not in project.members.all():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
         project = form.save(commit=False)
         project.save()
-
-        # Add the current user to project members if not already a member
-        if self.request.user not in project.members.all():
-            project.members.add(self.request.user)
-        
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         project = self.get_object()
         context['members'] = project.members.all()
-        context['all_users'] = User.objects.exclude(id=project.user.id)
+        context['all_users'] = User.objects.exclude(id=project.created_by.id)
         return context
 
     def post(self, request, *args, **kwargs):
         project = self.get_object()
-        members = request.POST.getlist('members')  # Get list of selected member IDs from form
+        members = request.POST.getlist('members')
+        members.append(str(request.user.id))
+        if not project.created_by == request.user:
+            raise PermissionDenied
 
-        # Clear existing members and add selected members
+        current_user = request.user
+        if current_user not in project.members.all():
+            project.members.add(current_user)
+
         project.members.clear()
         for member_id in members:
             user = get_object_or_404(User, id=member_id)
@@ -89,6 +112,12 @@ class ProjectDelete(LoginRequiredMixin, DeleteView):
     context_object_name = 'project'
     success_url = reverse_lazy('project_list')
     template_name = 'projects/project_confirm_delete.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        project = self.get_object()
+        if request.user != project.created_by and request.user not in project.members.all():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
 class UserLoginView(LoginView):
     template_name = 'projects/login.html'
@@ -150,7 +179,7 @@ class TaskCreate(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         project = get_object_or_404(Projects, id=self.kwargs['pk'])
         context['project'] = project
-        context['users'] = project.members.all()  # Provide project members for the dropdown
+        context['users'] = project.members.all()
         return context
 
     def get_success_url(self):
@@ -161,20 +190,26 @@ class TaskUpdate(LoginRequiredMixin, UpdateView):
     fields = ['title', 'description', 'status']
     template_name = 'tasks/task_form.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        task = self.get_object()
+        if request.user != task.project.created_by and request.user not in task.project.members.all():
+            raise PermissionDenied 
+        return super().dispatch(request, *args, **kwargs)
+
     def form_valid(self, form):
-        assigned_to_id = self.request.POST.get('assigned_to')  # Get selected assignee ID from POST data
+        assigned_to_id = self.request.POST.get('assigned_to')
         if assigned_to_id:
             form.instance.assigned_to = User.objects.get(id=assigned_to_id)
         else:
-            form.instance.assigned_to = None  # Clear the assignee if none is selected
+            form.instance.assigned_to = None
         return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         task = self.get_object()
-        project = task.project  # Use the task's existing project
+        project = task.project
         context['project'] = project
-        context['users'] = project.members.all()  # Provide project members for the dropdown
+        context['users'] = project.members.all()
         return context
 
     def get_success_url(self):
@@ -186,6 +221,11 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
     context_object_name = 'task'
     template_name = 'tasks/task_confirm_delete.html'
 
+    def dispatch(self, request, *args, **kwargs):
+        task = self.get_object()
+        if request.user != task.project.created_by and request.user not in task.project.members.all():
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self):
         return reverse_lazy('project_detail', kwargs={'pk': self.object.project.id})
-

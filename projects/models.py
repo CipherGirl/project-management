@@ -8,7 +8,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 class Projects(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_projects')
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_projects')
     title = models.CharField(max_length=200)
     description = models.TextField()
     complete = models.BooleanField(default=False)
