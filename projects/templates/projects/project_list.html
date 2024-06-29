@@ -1,3 +1,6 @@
+{% extends 'projects/main.html' %}
+
+{% block content %}
 {% if request.user.is_authenticated %}
 <p>{{ request.user }}</p>
 <form action="{% url 'logout' %}" method="post">
@@ -32,3 +35,5 @@
   {% endfor %}
 </table>
 {% endif %}
+{% endblock content %}
+

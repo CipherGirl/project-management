@@ -1,3 +1,7 @@
+
+{% extends 'projects/main.html' %}
+
+{% block content %}
 <form action="" method="post">
   {% csrf_token %}
   <h1>
@@ -6,3 +10,4 @@
   <input type="submit" value="Yes">
 </form>
 <a href="{% url 'project_list' %}">No, Go Back</a>
+{% endblock content %}
