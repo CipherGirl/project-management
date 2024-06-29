@@ -1,28 +1,38 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Create Task</title>
-</head>
-<body>
+{% extends 'projects/main.html' %}
+
+{% block content %}
     <h1>Create Task</h1>
     <form method="post">
-        {% csrf_token %}
-        <table>
-            <tr>
-                <td>Title:</td>
-                <td>{{ form.title }}</td>
-            </tr>
-            <tr>
-                <td>Description:</td>
-                <td>{{ form.description }}</td>
-            </tr>
-            <tr>
-                <td>Status:</td>
-                <td>{{ form.status }}</td>
-            </tr>
-        </table>
-        <button type="submit">Save</button>
-    </form>
-    <a href="{% url 'project_detail' pk=project.id %}">Back to Project</a>
-</body>
-</html>
+      {% csrf_token %}
+      <table>
+          <tr>
+              <td>Title:</td>
+              <td>{{ form.title }}</td>
+          </tr>
+          <tr>
+              <td>Description:</td>
+              <td>{{ form.description }}</td>
+          </tr>
+          <tr>
+              <td>Status:</td>
+              <td>{{ form.status }}</td>
+          </tr>
+          <tr>
+              <td>Assignee:</td>
+              <td>
+                  <select name="assigned_to">
+                      <option value="">Select Assignee</option>
+                      {% for user in users %}
+                          <option value="{{ user.id }}">{{ user.username }}</option>
+                      {% endfor %}
+                  </select>
+              </td>
+          </tr>
+      </table>
+      <button type="submit">Save</button>
+  </form>
+  
+    {% if project %}
+    <a href="{% url 'project_detail' project.id %}">Back to Project</a>
+    {% endif %}
+{% endblock content %}

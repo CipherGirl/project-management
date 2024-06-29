@@ -5,6 +5,7 @@ from django.views.generic.edit import FormView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
+from django.contrib.auth.models import User
 from django.urls import reverse_lazy
 from .models import Projects, Task
 
@@ -100,23 +101,29 @@ class TaskDetail(LoginRequiredMixin, DetailView):
 
 class TaskCreate(LoginRequiredMixin, CreateView):
     model = Task
-    fields = ['title', 'description', 'status']
+    fields = ['title', 'description', 'status']  # Include 'assigned_to' if not using the default User model
+
     template_name = 'tasks/task_form.html'
 
     def form_valid(self, form):
+        print(self.request.POST) 
         project = get_object_or_404(Projects, id=self.kwargs['pk'])
         form.instance.project = project
-        form.instance.user = self.request.user
-        return super(TaskCreate, self).form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('project_detail', kwargs={'pk': self.kwargs['pk']})
+        form.instance.user = self.request.user  # Assign current user
+        assigned_to_id = self.request.POST.get('assigned_to')  # Get selected assignee ID from POST data
+        if assigned_to_id:
+            form.instance.assigned_to = User.objects.get(id=assigned_to_id)
+        return super().form_valid(form)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['project'] = get_object_or_404(Projects, id=self.kwargs['pk'])
+        context['users'] = User.objects.all()  # Provide all users for the dropdown
         return context
 
+    def get_success_url(self):
+        return reverse_lazy('project_detail', kwargs={'pk': self.kwargs['pk']})
+    
 class TaskUpdate(LoginRequiredMixin, UpdateView):
     model = Task
     fields = ['title', 'description', 'status']
