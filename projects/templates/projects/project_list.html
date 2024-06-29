@@ -1,5 +1,7 @@
 <h1>My Project List</h1>
 
+<a href="{% url 'project_create' %}">Create a new project</a>
+
 {% if not projects %}
   <h3>No projects</h3>
   <a href="">Create a new project</a>
