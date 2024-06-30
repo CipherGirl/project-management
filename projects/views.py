@@ -73,7 +73,7 @@ class ProjectCreate(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         context["form_title"] = "Create Project"
         context["submit_button_text"] = "Create Project"
-        context["all_users"] = User.objects.all()
+        context["all_users"] = User.objects.exclude(id=self.request.user.id)
         context["members"] = []
         return context
 
@@ -81,7 +81,15 @@ class ProjectCreate(LoginRequiredMixin, CreateView):
         project = form.save(commit=False)
         project.created_by = self.request.user
         project.save()
-        project.members.add(self.request.user)
+
+        if self.request.user not in project.members.all():
+            project.members.add(self.request.user)
+
+        selected_members_ids = self.request.POST.getlist("members")
+        for member_id in selected_members_ids:
+            member = User.objects.get(id=member_id)
+            project.members.add(member)
+
         return super().form_valid(form)
 
 
@@ -92,19 +100,26 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     template_name = "projects/project_form.html"
     success_url = reverse_lazy("project_list")
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["form_title"] = "Update Project"
-        context["submit_button_text"] = "Update Project"
+    def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
-        context["all_users"] = User.objects.exclude(id=project.created_by.id)
-        context["members"] = project.members.all()
-        return context
+        if not project.created_by == request.user:
+            raise PermissionDenied
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         project = form.save(commit=False)
         project.save()
         return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        project = self.get_object()
+        context = super().get_context_data(**kwargs)
+        context["form_title"] = "Update Project"
+        context["submit_button_text"] = "Update Project"
+        context["members"] = project.members.all()
+        context["all_users"] = User.objects.exclude(id=project.created_by.id)
+        return context
 
     def post(self, request, *args, **kwargs):
         project = self.get_object()
@@ -112,6 +127,17 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
         members.append(str(request.user.id))
         if not project.created_by == request.user:
             raise PermissionDenied
+
+        current_user = request.user
+        if current_user not in project.members.all():
+            project.members.add(current_user)
+
+        project.members.clear()
+        for member_id in members:
+            user = get_object_or_404(User, id=member_id)
+            project.members.add(user)
+
+        return super().post(request, *args, **kwargs)
 
 
 # View to delete a project
