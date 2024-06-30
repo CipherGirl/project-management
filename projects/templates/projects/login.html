@@ -1,15 +1,11 @@
-
 {% extends 'projects/main.html' %}
-
 {% block content %}
-<h1>Login</h1>
-
-<form action="" method="post">
-  {% csrf_token %} {{ form.as_p }}
-  <button type="submit">Login</button>
-</form>
-
-<p>Don't have an account yet? <a href="{% url 'register' %}">Register</a></p>
-
+  <h1>Login</h1>
+  <form action="" method="post">
+    {% csrf_token %} {{ form.as_p }}
+    <button class="btn btn-primary my-2" type="submit">Login</button>
+  </form>
+  <p>
+    Don't have an account yet? <a class="link-primary" href="{% url 'register' %}">Register</a>
+  </p>
 {% endblock content %}
-

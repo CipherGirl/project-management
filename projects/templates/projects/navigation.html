@@ -20,7 +20,8 @@
       </ul>
       {% if user.is_authenticated %}
         <form action="{% url 'logout' %}" method="post" class="d-flex">
-          <span class="navbar-text me-2">{{ user.username }}</span>
+          <span class="navbar-text fw-bold me-3">
+            <i class="fa-solid fa-circle-user"></i> {{ user.username }}</span>
           {% csrf_token %}
           <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
         </form>
