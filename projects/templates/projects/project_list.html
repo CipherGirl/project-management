@@ -1,39 +1,34 @@
-{% extends 'projects/main.html' %}
-
+{% extends "projects/main.html" %}
 {% block content %}
-{% if request.user.is_authenticated %}
-<p>{{ request.user }}</p>
-<form action="{% url 'logout' %}" method="post">
-  {% csrf_token %}
-  <button type="submit">Logout</button>
-</form>
-
-{% else %}
-<a href="{% url 'login' %}">Login</a>
-
-{% endif %}
-
-<h1>My Project List</h1>
-
-<a href="{% url 'project_create' %}">Create a new project</a>
-
-{% if not projects %}
-<h3>No projects</h3>
-<a href="">Create a new project</a>
-{% else %}
-<table>
-  <tr>
-    <th>Items</th>
-  </tr>
-  {% for project in projects %}
-  <tr>
-    <td>{{project.id}} - {{ project.title }}</td>
-    <td><a href="{% url 'project_detail' project.id %}">View</a></td>
-    <td><a href="{% url 'project_update' project.id %}">Update</a></td>
-    <td><a href="{% url 'project_delete' project.id %}">Delete</a></td>
-  </tr>
-  {% endfor %}
-</table>
-{% endif %}
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>All Projects</h2>
+    <a class="btn btn-outline-primary btn-sm"
+       href="{% url 'project_create' %}">
+      <i class="fa-solid fa-plus"></i>
+      Create a new project
+    </a>
+  </div>
+  {% if not projects %}
+    <h3>No projects</h3>
+  {% else %}
+    <table>
+      <tr>
+        <th>Items</th>
+      </tr>
+      {% for project in projects %}
+        <tr>
+          <td>{{ project.id }} - {{ project.title }}</td>
+          <td>
+            <a href="{% url 'project_detail' project.id %}">View</a>
+          </td>
+          <td>
+            <a href="{% url 'project_update' project.id %}">Update</a>
+          </td>
+          <td>
+            <a href="{% url 'project_delete' project.id %}">Delete</a>
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
 {% endblock content %}
-

@@ -1,33 +1,36 @@
-{% extends 'projects/main.html' %} {% block content %}
-
-<h1>{{ project.title }}</h1>
-<p>Description: {{ project.description }}</p>
-<p>Complete: {% if project.complete %} Yes {% else %} No {% endif %}</p>
-<a href="{% url 'task_create' project.pk %}">Create a new task</a>
-
-<h2>Members:</h2>
-<ul>
-  {% for member in project.members.all %}
-  <li>{{ member.username }}</li>
-  {% empty %}
-  <li>No members for this project.</li>
-  {% endfor %}
-</ul>
-
-<h2>Tasks:</h2>
-<ul>
-  {% for task in tasks %}
-  <li>
-    {{ task.title }} - {{ task.status }} Assigned to: {{ task.assigned_to }}
-    <a href="{% url 'task_update' project.pk task.pk %}">Update</a>
-    <a href="{% url 'task_delete' project.pk task.pk %}">Delete</a>
-  </li>
-  {% empty %}
-  <li>No tasks for this project.</li>
-  {% endfor %}
-</ul>
-
-<a href="{% url 'project_update' project.pk %}">Update Project</a>
-<a href="{% url 'project_delete' project.pk %}">Delete Project</a>
-
+{% extends "projects/main.html" %}
+{% block content %}
+  <h1>{{ project.title }}</h1>
+  <p>Description: {{ project.description }}</p>
+  <p>
+    Complete:
+    {% if project.complete %}
+      Yes
+    {% else %}
+      No
+    {% endif %}
+  </p>
+  <a href="{% url 'task_create' project.pk %}">Create a new task</a>
+  <h2>Members:</h2>
+  <ul>
+    {% for member in project.members.all %}
+      <li>{{ member.username }}</li>
+    {% empty %}
+      <li>No members for this project.</li>
+    {% endfor %}
+  </ul>
+  <h2>Tasks:</h2>
+  <ul>
+    {% for task in tasks %}
+      <li>
+        {{ task.title }} - {{ task.status }} Assigned to: {{ task.assigned_to }}
+        <a href="{% url 'task_update' project.pk task.pk %}">Update</a>
+        <a href="{% url 'task_delete' project.pk task.pk %}">Delete</a>
+      </li>
+    {% empty %}
+      <li>No tasks for this project.</li>
+    {% endfor %}
+  </ul>
+  <a href="{% url 'project_update' project.pk %}">Update Project</a>
+  <a href="{% url 'project_delete' project.pk %}">Delete Project</a>
 {% endblock content %}

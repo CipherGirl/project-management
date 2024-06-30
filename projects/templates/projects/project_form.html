@@ -1,19 +1,16 @@
-{% extends 'projects/main.html' %}
-
+{% extends "projects/main.html" %}
 {% block content %}
-<h1>Update Project</h1>
-<form method="post">
-  {% csrf_token %}
-  {{ form.as_p }}
-
-  <label for="members">Members:</label>
-  <select name="members" id="members" multiple>
-    {% for user in all_users %}
-    <option value="{{ user.id }}" {% if user in members %}selected{% endif %}>{{ user.username }}</option>
-    {% endfor %}
-  </select>
-
-  <button type="submit">Update Project</button>
-</form>
-<a href="{% url 'project_list' %}">Cancel</a>
+  <h1>{{ form_title }}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <label for="members">Members:</label>
+    <select name="members" id="members" multiple>
+      {% for user in all_users %}
+        <option value="{{ user.id }}" {% if user in members %}selected{% endif %}>{{ user.username }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">{{ submit_button_text }}</button>
+  </form>
+  <a href="{% url 'project_list' %}">Cancel</a>
 {% endblock content %}
