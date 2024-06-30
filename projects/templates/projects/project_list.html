@@ -26,36 +26,19 @@
             <th scope="row">{{ forloop.counter }}</th>
             <td>{{ project.title }}</td>
             <td>{{ project.created_by }}</td>
-            <td class="d-flex gap-3">
-              <a href="{% url "project_detail" project.id %}"
+            <td class="d-flex gap-3 align-items-center">
+              <a href="{% url 'project_detail' project.id %}"
                  title="View"
                  data-toggle="tooltip"
                  class="text-secondary"><i class="fa-solid fa-eye"></i></a>
-              {% if user.is_authenticated %}
-                {% if user.username == project.created_by.username %}
-                  <a href="{% url "project_update" project.id %}"
-                     title="Update"
-                     data-toggle="tooltip"
-                     class="text-secondary {% if not user.is_authenticated %}disabled{% endif %}"
-                     {% if not user.is_authenticated %}aria-disabled="true"{% endif %}><i class="fa-solid fa-pen"></i></a>
-                  <a href="{% url 'project_delete' project.id %}"
-                     title="Delete"
-                     data-toggle="tooltip"
-                     class="text-danger {% if not user.is_authenticated %}disabled{% endif %}"
-                     {% if not user.is_authenticated %}aria-disabled="true"{% endif %}><i class="fa-solid fa-trash"></i></a>
-                {% else %}
-                  <a href="{% url "project_update" project.id %}"
-                     title="Update"
-                     data-toggle="tooltip"
-                     class="text-secondary disabled"
-                     aria-disabled="true"><i class="fa-solid fa-pen"></i></a>
-                  <a href="{% url 'project_delete' project.id %}"
-                     title="Delete"
-                     data-toggle="tooltip"
-                     class="text-danger disabled"
-                     aria-disabled="true"><i class="fa-solid fa-trash"></i></a>
-                {% endif %}
-              {% endif %}
+              <a href="{% url 'project_update' project.id %}"
+                 title="Update"
+                 data-toggle="tooltip"
+                 class="text-secondary "><i class="fa-solid fa-pen"></i></a>
+              <a href="{% url 'project_delete' project.id %}"
+                 title="Delete"
+                 data-toggle="tooltip"
+                 class="text-danger "><i class="fa-solid fa-trash"></i></a>
             </td>
           </tr>
         {% endfor %}

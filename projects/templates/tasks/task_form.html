@@ -1,40 +1,40 @@
 {% extends 'projects/main.html' %}
-
 {% block content %}
-    <h1>{% if form.instance.pk %}Update{% else %}Create{% endif %} Task</h1>
-    <form method="post">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>
+            {% if form.instance.pk %}
+                Update
+            {% else %}
+                Create
+            {% endif %}
+            Task
+        </h1>
+        {% if project %}
+            <a href="{% url 'project_detail' project.id %}" class="link-secondary">
+                <i class="fa-solid fa-arrow-left"></i>
+                Back to Project
+            </a>
+        {% endif %}
+    </div>
+    <form method="post" class="custom-form">
         {% csrf_token %}
-        <table>
-            <tr>
-                <td>Title:</td>
-                <td>{{ form.title }}</td>
-            </tr>
-            <tr>
-                <td>Description:</td>
-                <td>{{ form.description }}</td>
-            </tr>
-            <tr>
-                <td>Status:</td>
-                <td>{{ form.status }}</td>
-            </tr>
-            <tr>
-                <td>Assignee:</td>
-                <td>
-                    <select name="assigned_to">
-                        <option value="">Select Assignee</option>
-                        {% for user in users %}
-                            <option value="{{ user.id }}" {% if form.instance.assigned_to == user %}selected{% endif %}>
-                                {{ user.username }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </td>
-            </tr>
-        </table>
-        <button type="submit">Save</button>
+        {% for field in form %}
+            <div class="form-group{% if field.field.widget.input_type == 'checkbox' %}-row{% endif %}">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <div class="form-group">
+            <label for="id_assigned_to">Assignee:</label>
+            <select name="assigned_to" id="id_assigned_to">
+                <option value="">Select Assignee</option>
+                {% for user in users %}
+                    <option value="{{ user.id }}"
+                            {% if form.instance.assigned_to == user %}selected{% endif %}>{{ user.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button class="btn btn-primary" type="submit">Save</button>
     </form>
-  
-    {% if project %}
-        <a href="{% url 'project_detail' project.id %}">Back to Project</a>
-    {% endif %}
 {% endblock content %}

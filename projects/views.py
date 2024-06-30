@@ -19,6 +19,11 @@ from django.core.exceptions import PermissionDenied
 from django.urls import resolve
 
 
+# Custom view for handling PermissionDenied
+def custom_permission_denied_view(request, exception):
+    return render(request, "projects/403.html", status=403)
+
+
 # View to list all projects the user is involved in
 class ProjectList(LoginRequiredMixin, ListView):
     model = Projects
@@ -98,7 +103,6 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     model = Projects
     fields = ["title", "description", "complete"]
     template_name = "projects/project_form.html"
-    success_url = reverse_lazy("project_list")
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
@@ -114,7 +118,6 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         project = self.get_object()
-        context = super().get_context_data(**kwargs)
         context["form_title"] = "Update Project"
         context["submit_button_text"] = "Update Project"
         context["members"] = project.members.all()
@@ -139,6 +142,9 @@ class ProjectUpdate(LoginRequiredMixin, UpdateView):
 
         return super().post(request, *args, **kwargs)
 
+    def get_success_url(self):
+        return reverse_lazy("project_detail", kwargs={"pk": self.object.pk})
+
 
 # View to delete a project
 class ProjectDelete(LoginRequiredMixin, DeleteView):
@@ -149,11 +155,7 @@ class ProjectDelete(LoginRequiredMixin, DeleteView):
 
     def dispatch(self, request, *args, **kwargs):
         project = self.get_object()
-        # Only the creator or members can delete the project
-        if (
-            request.user != project.created_by
-            and request.user not in project.members.all()
-        ):
+        if request.user != project.created_by:
             raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 

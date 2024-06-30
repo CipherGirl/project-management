@@ -1,0 +1,7 @@
+{% extends 'projects/main.html' %}
+{% block content %}
+    <h2>Permission Denied</h2>
+    <p>You do not have permission to access this page.</p>
+    <a href="{% url 'project_list' %}"class="btn btn-outline-secondary">
+        <i class="fa-solid fa-arrow-left"></i> Back to Projects</a>
+{% endblock content %}

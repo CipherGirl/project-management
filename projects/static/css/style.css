@@ -1,0 +1,87 @@
+/* Form container */
+.custom-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f7f7f7;
+}
+
+.custom-.custom-form > h1 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+/* Form fields and labels */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+}
+
+.form-group > label {
+  font-weight: bold;
+}
+
+.form-group > input[type='text'],
+.form-group > textarea,
+.form-group > select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  max-height: 150px;
+}
+.form-group > input[type='checkbox'] {
+  flex-direction: row;
+}
+/* Form buttons */
+.custom-.custom-form > button[type='submit'],
+.custom-.custom-form > a {
+  display: inline-block;
+  padding: 10px 20px;
+  margin-right: 10px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.custom-form > button[type='submit']:hover,
+.custom-form > a:hover {
+  background-color: #0056b3;
+}
+
+/* Cancel link */
+.custom-form > a {
+  background-color: #007bff;
+}
+
+.custom-form > a:hover {
+  color: #fff;
+}
+
+/* Error messages */
+.errorlist {
+  color: red;
+  margin-top: 5px;
+}
+
+select[multiple] option {
+  padding: 8px;
+}
+
+select[multiple] option {
+  padding: 8px;
+  margin-bottom: 2px;
+}
+
+select[multiple] option:checked {
+  background-color: #c9e2ffec;
+  color: #000;
+}
