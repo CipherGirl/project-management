@@ -266,5 +266,12 @@ class TaskDelete(LoginRequiredMixin, DeleteView):
             raise PermissionDenied
         return task
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        task = self.get_object()
+        project = task.project
+        context["project"] = project
+        return context
+
     def get_success_url(self):
         return reverse_lazy("project_detail", kwargs={"pk": self.object.project.id})

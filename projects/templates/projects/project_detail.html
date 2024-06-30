@@ -1,36 +1,93 @@
 {% extends "projects/main.html" %}
 {% block content %}
-  <h1>{{ project.title }}</h1>
-  <p>Description: {{ project.description }}</p>
-  <p>
-    Complete:
-    {% if project.complete %}
-      Yes
+  <div class="d-flex justify-content-between align-items-center">
+    <h2>{{ project.title }}</h2>
+    <div class="d-flex gap-3">
+      {% if project.complete %}
+        <span class="badge bg-success">Completed</span>
+      {% else %}
+        <span class="badge bg-primary">Ongoing</span>
+      {% endif %}
+      <a href="{% url 'project_update' project.pk %}"
+         title="Delete"
+         data-toggle="tooltip"
+         class="text-secondary">
+        <i class="fa-solid fa-pen"></i></a>
+      <a href="{% url 'project_delete' project.pk %}"
+         title="Delete"
+         data-toggle="tooltip"
+         class="text-danger">
+        <i class="fa-solid fa-trash"></i>
+      </a>
+    </div>
+  </div>
+  <p>{{ project.description }}</p>
+  <hr>
+  <div class="my-4">
+    <div class="d-flex justify-content-between align-items-center">
+      <h4>Tasks</h4>
+      <a class="btn btn-outline-primary btn-sm"
+         href="{% url 'task_create' project.pk %}">
+        <i class="fa-solid fa-plus"></i> Create a new task
+      </a>
+    </div>
+    {% if tasks %}
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">#</th>
+            <th scope="col">Task Title</th>
+            <th scope="col">Assignee</th>
+            <th scope="col">Status</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for task in tasks %}
+            <tr>
+              <th scope="row">{{ forloop.counter }}</th>
+              <td>{{ task.title }}</td>
+              <td>{{ task.assigned_to }}</td>
+              <td>
+                {% if task.status == 'pending' %}
+                  <span class="badge bg-secondary">To Do</span>
+                {% elif task.status == 'in_progress' %}
+                  <span class="badge bg-primary">In Progress</span>
+                {% else %}
+                  <span class="badge bg-success">Done</span>
+                {% endif %}
+              </td>
+              <td class="d-flex gap-3">
+                <a href="{% url 'task_update' project.pk task.pk %}"
+                   title="Update"
+                   data-toggle="tooltip"
+                   class="text-secondary">
+                  <i class="fa-solid fa-pen"></i>
+                </a>
+                <a href="{% url 'task_delete' project.pk task.pk %}"
+                   title="Delete"
+                   data-toggle="tooltip"
+                   class="text-danger">
+                  <i class="fa-solid fa-trash"></i>
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     {% else %}
-      No
+      <p>There's no tasks in this project</p>
     {% endif %}
-  </p>
-  <a href="{% url 'task_create' project.pk %}">Create a new task</a>
-  <h2>Members:</h2>
-  <ul>
-    {% for member in project.members.all %}
-      <li>{{ member.username }}</li>
-    {% empty %}
-      <li>No members for this project.</li>
-    {% endfor %}
-  </ul>
-  <h2>Tasks:</h2>
-  <ul>
-    {% for task in tasks %}
-      <li>
-        {{ task.title }} - {{ task.status }} Assigned to: {{ task.assigned_to }}
-        <a href="{% url 'task_update' project.pk task.pk %}">Update</a>
-        <a href="{% url 'task_delete' project.pk task.pk %}">Delete</a>
-      </li>
-    {% empty %}
-      <li>No tasks for this project.</li>
-    {% endfor %}
-  </ul>
-  <a href="{% url 'project_update' project.pk %}">Update Project</a>
-  <a href="{% url 'project_delete' project.pk %}">Delete Project</a>
+    <hr>
+  </div>
+  <div>
+    <h5>Members</h5>
+    <ul class="list-group">
+      {% for member in project.members.all %}
+        <li class="list-group-item">{{ member.username }}</li>
+      {% empty %}
+        <li>No members for this project.</li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endblock content %}

@@ -11,24 +11,38 @@
   {% if not projects %}
     <h3>No projects</h3>
   {% else %}
-    <table>
-      <tr>
-        <th>Items</th>
-      </tr>
-      {% for project in projects %}
+    <table class="table">
+      <thead>
         <tr>
-          <td>{{ project.id }} - {{ project.title }}</td>
-          <td>
-            <a href="{% url 'project_detail' project.id %}">View</a>
-          </td>
-          <td>
-            <a href="{% url 'project_update' project.id %}">Update</a>
-          </td>
-          <td>
-            <a href="{% url 'project_delete' project.id %}">Delete</a>
-          </td>
+          <th scope="col">#</th>
+          <th scope="col">Project Name</th>
+          <th scope="col">Created By</th>
+          <th scope="col">Actions</th>
         </tr>
-      {% endfor %}
+      </thead>
+      <tbody>
+        {% for project in projects %}
+          <tr>
+            <th scope="row">{{ forloop.counter }}</th>
+            <td>{{ project.title }}</td>
+            <td>{{ project.created_by }}</td>
+            <td class="d-flex gap-3">
+              <a href="{% url "project_detail" project.id %}"
+                 title="View"
+                 data-toggle="tooltip"
+                 class="text-secondary"><i class="fa-solid fa-eye"></i></a>
+              <a href="{% url "project_update" project.id %}"
+                 title="Update"
+                 data-toggle="tooltip"
+                 class="text-secondary"><i class="fa-solid fa-pen"></i></a>
+              <a href="{% url 'project_delete' project.id %}"
+                 title="Delete"
+                 data-toggle="tooltip"
+                 class="text-danger"><i class="fa-solid fa-trash"></i></a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
     </table>
   {% endif %}
 {% endblock content %}

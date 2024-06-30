@@ -22,7 +22,7 @@
         <form action="{% url 'logout' %}" method="post" class="d-flex">
           <span class="navbar-text me-2">{{ user.username }}</span>
           {% csrf_token %}
-          <button type="submit" class="btn btn-outline-danger">Logout</button>
+          <button type="submit" class="btn btn-outline-danger btn-sm">Logout</button>
         </form>
       {% else %}
         {% if current_view == 'login' %}
